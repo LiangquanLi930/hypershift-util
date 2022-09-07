@@ -6,3 +6,4 @@ kubeadmin-password
 .DS_Store
 /hypershift
 todo.md
+config/*

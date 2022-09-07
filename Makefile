@@ -11,11 +11,11 @@ help: ## Display this help.
 
 .PHONY: config
 config: ## config, Init configuration
-	@git clone git@github.com:openshift/hypershift.git && mkdir -p  config
+	@git clone git@github.com:openshift/hypershift.git && mkdir -p config
 
 .PHONY: update-cli
 update-cli: ## update hypershift cli
-	@cd hypershift && git checkout . && git pull && make hypershift
+	@cd hypershift && git checkout . && git pull && make hypershift && cp -f hypershift/bin/hypershift /usr/local/bin
 
 #hypershift install
 .PHONY: install-operator
