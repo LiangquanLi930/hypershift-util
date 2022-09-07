@@ -1,0 +1,8 @@
+kubeconfig
+hostedcluster.kubeconfig
+kubeadmin-password
+/.vscode
+/.idea
+.DS_Store
+/hypershift
+todo.md
