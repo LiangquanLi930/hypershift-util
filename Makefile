@@ -20,37 +20,40 @@ update-cli: ## update hypershift cli
 #hypershift install
 .PHONY: install-operator
 install-operator: ## install HyperShift operator
-	bash hack/install-operator.sh
+	@bash hack/install-operator.sh
 
 .PHONY: uninstall-operator
 uninstall-operator: ## uninstall HyperShift operator. check: oc get all -n hypershift
-	hypershift install render --format=yaml | oc delete -f -
+	@hypershift install render --format=yaml | oc delete -f -
 
 .PHONY: get-region
 get-region: ## get cluster region
 	@oc get node -ojsonpath='{.items[].metadata.labels.topology\.kubernetes\.io/region}'
 
-
 .PHONY: get-platform
 get-platform: ## get cluster platform
 	@oc get infrastructure cluster -o=jsonpath='{.status.platformStatus.type}'
 
+.PHONY: export-credentials
+export-credentials: ## export credentials (support: AWS,Azure)
+	@bash hack/export-credentials.sh
+
 # need aws cli https://docs.aws.amazon.com/zh_cn/cli/v1/userguide/install-macos.html
-.PHONY: create-bucket
-create-bucket: ## create aws An S3 bucket with public access to host OIDC discovery documents for your clusters.
-	bash hack/create-bucket.sh
+.PHONY: create-aws-bucket
+create-aws-bucket: ## create aws An S3 bucket with public access to host OIDC discovery documents for your clusters.
+	@bash hack/create-bucket.sh
 
 .PHONY: create-cluster
-create-cluster: ## create hosted cluster (aws or azure)
-	bash hack/create-cluster.sh
+create-cluster: ## create hosted cluster (AWS,Azure)
+	@bash hack/create-cluster.sh
 
 .PHONY: create-cluster-manual
 create-cluster-manual: ## create hosted cluster (AWS) manual
-	bash hack/create-cluster-manual.sh
+	@bash hack/create-cluster-manual.sh
 
 .PHONY: destroy-cluster
-destroy-cluster: ## destroy hosted cluster (AWS) 有待修改
-	bash hack/destroy-cluster.sh
+destroy-cluster: ## destroy hosted cluster (AWS,Azure)
+	@bash hack/destroy-cluster.sh
 
 .PHONY: create-kubeconfig
 create-kubeconfig: ## create hosted cluster kubeconfig > hostedcluster.kubeconfig 有待修改

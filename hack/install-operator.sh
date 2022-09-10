@@ -3,7 +3,8 @@
 platform=$(oc get infrastructure cluster -o=jsonpath='{.status.platformStatus.type}')
 echo "platform: $platform"
 if [ "$platform" == 'Azure' ]; then
-    hypershift install
+    hypershift install \
+        --hypershift-image "quay.io/hypershift/hypershift-operator:latest"
 elif [ "$platform" == "AWS" ]; then
     echo -n "bucket name? "
     read -r BUCKET_NAME
@@ -16,5 +17,6 @@ elif [ "$platform" == "AWS" ]; then
     hypershift install \
     		--oidc-storage-provider-s3-bucket-name "$BUCKET_NAME" \
     		--oidc-storage-provider-s3-credentials "config/awscredentials" \
-    		--oidc-storage-provider-s3-region "$REGION"
+    		--oidc-storage-provider-s3-region "$REGION" \
+    		--hypershift-image "quay.io/hypershift/hypershift-operator:latest"
 fi
