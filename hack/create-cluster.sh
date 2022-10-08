@@ -42,6 +42,7 @@ elif [ "$platform" == "AWS" ]; then
     REGION=$(oc get node -ojsonpath='{.items[].metadata.labels.topology\.kubernetes\.io/region}')
     echo "region: $REGION"
 
+    PLAYLOADIMAGE=$(oc get clusterversion version -ojsonpath='{.status.desired.image}')
     hypershift create cluster aws \
         --aws-creds config/awscredentials \
         --pull-secret config/.dockerconfigjson \
@@ -50,8 +51,11 @@ elif [ "$platform" == "AWS" ]; then
         --namespace "$NAMESPACE" \
         --node-pool-replicas 3 \
         --region "$REGION" \
+        --control-plane-availability-policy HighlyAvailable \
         --infra-availability-policy HighlyAvailable \
         --control-plane-operator-image "registry.ci.openshift.org/ocp/4.12:hypershift-operator" \
         --release-image "$PLAYLOADIMAGE" \
         --generate-ssh
+else
+  echo ""
 fi
