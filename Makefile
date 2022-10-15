@@ -58,3 +58,7 @@ destroy-cluster: ## destroy hosted cluster (AWS,Azure)
 .PHONY: create-kubeconfig
 create-kubeconfig: ## create hosted cluster kubeconfig > hostedcluster.kubeconfig 有待修改
 	@hypershift create kubeconfig > hostedcluster.kubeconfig
+
+.PHONY: guest-console-info
+guest-console-info: ## get hosted cluster web console info
+	@bash hack/console.sh

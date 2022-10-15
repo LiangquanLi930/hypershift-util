@@ -16,7 +16,7 @@ do
     if [ "$platform" == 'Azure' ]; then
         location=$(oc get node -ojsonpath='{.items[].metadata.labels.topology\.kubernetes\.io/region}')
         hypershift destroy cluster azure \
-            --aws-creds config/azurecredentials \
+            --azure-creds config/azurecredentials \
             --namespace "$NAMESPACE" \
             --name "$cluster_item" \
             --location "$location"
