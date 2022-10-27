@@ -12,7 +12,7 @@ for cluster_item in "${gclusters_arr[@]}"
 do
     echo "begin to destroy cluster ${cluster_item}"
     platform=$(oc get infrastructure cluster -o=jsonpath='{.status.platformStatus.type}')
-    bash "hack/export-credentials.sh" "$platform"
+    bash "hack/export-credentials.sh"
     if [ "$platform" == 'Azure' ]; then
         location=$(oc get node -ojsonpath='{.items[].metadata.labels.topology\.kubernetes\.io/region}')
         hypershift destroy cluster azure \

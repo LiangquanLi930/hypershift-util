@@ -5,4 +5,5 @@ CLUSTER_NAME=$(oc get hostedclusters -n clusters -o=jsonpath='{.items[0].metadat
 
 kubedamin_password=$(oc get secret -n "$NAMESPACE-$CLUSTER_NAME" kubeadmin-password --template='{{.data.password | base64decode}}')
 echo "guset-password: $kubedamin_password"
-echo "https://$(oc --kubeconfig="$SHARED_DIR"/nested_kubeconfig -n openshift-console get routes console -o=jsonpath='{.spec.host}')"
+hypershift create kubeconfig > hostedcluster.kubeconfig
+echo "https://$(oc --kubeconfig=hostedcluster.kubeconfig -n openshift-console get routes console -o=jsonpath='{.spec.host}')"
