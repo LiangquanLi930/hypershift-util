@@ -62,3 +62,7 @@ create-kubeconfig: ## create hosted cluster kubeconfig > hostedcluster.kubeconfi
 .PHONY: guest-console-info
 guest-console-info: ## get hosted cluster web console info
 	@bash hack/console.sh
+
+.PHONY: guest-create-user
+guest-create-user: ## create user for guest cluster
+	@bash hack/create-user.sh
