@@ -66,3 +66,7 @@ guest-console-info: ## get hosted cluster web console info
 .PHONY: guest-create-user
 guest-create-user: ## create user for guest cluster
 	@bash hack/create-user.sh
+
+.PHONY: install-mce
+install-mce: ## install mce operator
+	@bash hack/install-mce.sh
