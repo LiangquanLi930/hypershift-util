@@ -34,6 +34,14 @@ get-region: ## get cluster region
 get-platform: ## get cluster platform
 	@oc get infrastructure cluster -o=jsonpath='{.status.platformStatus.type}'
 
+.PHONY: get-architecture
+get-architecture: ## get cluster architecture
+	@oc get node -ojsonpath='{.items[*].status.nodeInfo.architecture}'
+
+.PHONY: get-baseDomain
+get-baseDomain: ## get cluster baseDomain
+	@oc get dns -ojsonpath='{.items[].spec.baseDomain}'
+
 .PHONY: export-credentials
 export-credentials: ## export credentials (support: AWS,Azure)
 	@bash hack/export-credentials.sh

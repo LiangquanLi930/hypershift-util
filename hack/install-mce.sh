@@ -2,13 +2,43 @@
 
 set -ex
 
-DOWNSTREAM=${DOWNSTREAM:-"false"}
-_REPO="quay.io/stolostron/cmb-custom-registry"
-if [ "$DOWNSTREAM" == "true" ]; then
-    _REPO="quay.io/acm-d/mce-custom-registry"
-    return -1
-fi
+echo -n "mce version (default:2.2)"
+read -r MCE_VERSION
+echo -n "QUAY_USERNAME"
+read -r QUAY_USERNAME
+echo -n "QUAY_PASSWORD"
+read -r QUAY_PASSWORD
+
+_REPO="quay.io/acm-d/mce-custom-registry"
 MCE_VERSION=${MCE_VERSION:-"2.2"}
+
+cat << EOF | oc apply -f -
+apiVersion: operator.openshift.io/v1alpha1
+kind: ImageContentSourcePolicy
+metadata:
+  name: rhacm-repo
+spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - quay.io/acm-d
+    source: registry.redhat.io/rhacm2
+  - mirrors:
+    - quay.io/acm-d
+    source: registry.redhat.io/multicluster-engine
+  - mirrors:
+    - registry.redhat.io/openshift4/ose-oauth-proxy
+    source: registry.access.redhat.com/openshift4/ose-oauth-proxy
+EOF
+
+oc get secret pull-secret -n openshift-config -o json | jq -r '.data.".dockerconfigjson"' | base64 -d > /tmp/global-pull-secret.json
+QUAY_AUTH=$(echo -n "${QUAY_USERNAME}:${QUAY_PASSWORD}" | base64)
+jq --arg QUAY_AUTH "$QUAY_AUTH" '.auths += {"quay.io/acm-d": {"auth":$QUAY_AUTH,"email":""}}' /tmp/global-pull-secret.json > /tmp/global-pull-secret.json.tmp
+mv /tmp/global-pull-secret.json.tmp /tmp/global-pull-secret.json
+oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=/tmp/global-pull-secret.json
+rm /tmp/global-pull-secret.json
+
+sleep 5
+oc wait mcp master worker --for condition=updated --timeout=20m
 
 VER=`oc version | grep "Client Version:"`
 echo "* oc CLI ${VER}"
@@ -80,8 +110,8 @@ done
 
 _apiReady=0
 echo "* Using CSV: ${CSVName}"
-for ((i=1; i<=10; i++)); do
-  sleep 10
+for ((i=1; i<=20; i++)); do
+  sleep 30
   output=$(oc get csv -n multicluster-engine $CSVName -o jsonpath='{.status.phase}' >> /dev/null && echo "exists" || echo "not found")
   if [ "$output" != "exists" ]; then
     continue
@@ -103,9 +133,7 @@ metadata:
   name: multiclusterengine-sample
 spec: {}
 EOF
-  if [ "$DOWNSTREAM" == "true" ]; then
-    oc annotate mce multiclusterengine-sample imageRepository=quay.io:443/acm-d
-  fi
+  oc annotate mce multiclusterengine-sample --overwrite imageRepository=quay.io/acm-d
   echo "multiclusterengine installed successfully"
   sleep 5
 else
@@ -117,39 +145,26 @@ oc patch mce multiclusterengine-sample --type=merge -p '{"spec":{"overrides":{"c
 
 # It takes some time for this api to become available.
 # So we try multiple times until it succeeds
-_localClusterCreated=0
+# wait for hypershift operator to come online
+_localClusterReady=0
 set +e
 for ((i=1; i<=10; i++)); do
-  oc apply -f - <<EOF
-apiVersion: cluster.open-cluster-management.io/v1
-kind: ManagedCluster
-metadata:
-  labels:
-    local-cluster: "true"
-  name: local-cluster
-spec:
-  hubAcceptsClient: true
-  leaseDurationSeconds: 60
-EOF
+  oc get managedcluster local-cluster -o 'jsonpath={.status.conditions[?(@.type=="ManagedClusterConditionAvailable")].status}' >> /dev/null
   if [ $? -eq 0 ]; then
-    _localClusterCreated=1
+    _localClusterReady=1
     break
   fi
-  sleep 10
+  echo "Waiting for MCE local-cluster to be ready..."
+  sleep 15
 done
 set -e
 
-if [ $_localClusterCreated -eq 0 ]; then
-  echo "local cluster not created in the allotted time."
+if [ $_localClusterReady -eq 0 ]; then
+  echo "FATAL: MCE local-cluster failed to be ready. Check operator on hub for more details."
   exit 1
 fi
+echo "MCE local-cluster is ready!"
 
-oc apply -f - <<EOF
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: local-cluster
-EOF
 oc apply -f - <<EOF
 apiVersion: addon.open-cluster-management.io/v1alpha1
 kind: ManagedClusterAddOn
@@ -179,3 +194,27 @@ if [ $_hypershiftReady -eq 0 ]; then
   exit 1
 fi
 echo "hypershift is online!"
+
+echo "Configuring the hosting service cluster"
+oc create secret generic hypershift-operator-oidc-provider-s3-credentials --from-file=credentials=config/awscredentials --from-literal=bucket=hypershift-ci-oidc --from-literal=region=us-east-1 -n local-cluster
+oc label secret hypershift-operator-oidc-provider-s3-credentials -n local-cluster cluster.open-cluster-management.io/backup=true
+# wait for Configuring the hosting service cluster
+_configReady=0
+set +e
+for ((i=1; i<=10; i++)); do
+  oc get configmap -n kube-public oidc-storage-provider-s3-config
+  if [ $? -eq 0 ]; then
+    _configReady=1
+    break
+  fi
+  echo "Waiting on Configuring the hosting service cluster"
+  sleep 30
+done
+set -e
+if [ $_configReady -eq 0 ]; then
+  echo "Configuring error"
+  exit 1
+fi
+echo "Configuring the hosting service cluster Succeeded!"
+
+oc get ConsoleCLIDownload hypershift-cli-download -o json | jq -r '.spec.links[] | select(.text | test("Linux for x86_64")).href'
