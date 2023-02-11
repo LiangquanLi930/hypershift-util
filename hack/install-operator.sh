@@ -2,7 +2,12 @@
 
 platform=$(oc get infrastructure cluster -o=jsonpath='{.status.platformStatus.type}')
 echo "platform: $platform"
-if [ "$platform" == 'Azure' ]; then
+kubevirt=$(oc get customresourcedefinitions | grep hyperconvergeds | wc -l)
+if [ "$kubevirt" -gt 0 ]; then
+    echo "kubevirt"
+    hypershift install \
+        --hypershift-image "quay.io/hypershift/hypershift-operator:latest"
+elif [ "$platform" == 'Azure' ]; then
     hypershift install \
         --hypershift-image "quay.io/hypershift/hypershift-operator:latest"
 elif [ "$platform" == "AWS" ]; then

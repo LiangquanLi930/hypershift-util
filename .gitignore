@@ -7,4 +7,4 @@ kubeadmin-password
 /hypershift
 todo.md
 config/*
-./mc.kubeconfig
+mc.kubeconfig
