@@ -6,10 +6,12 @@ kubevirt=$(oc get customresourcedefinitions | grep hyperconvergeds | wc -l)
 if [ "$kubevirt" -gt 0 ]; then
     echo "kubevirt"
     hypershift install \
-        --hypershift-image "quay.io/hypershift/hypershift-operator:latest"
+        --hypershift-image "quay.io/hypershift/hypershift-operator:latest" \
+        --wait-until-available
 elif [ "$platform" == 'Azure' ]; then
     hypershift install \
-        --hypershift-image "quay.io/hypershift/hypershift-operator:latest"
+        --hypershift-image "quay.io/hypershift/hypershift-operator:latest" \
+        --wait-until-available
 elif [ "$platform" == "AWS" ]; then
     echo -n "bucket name? "
     read -r BUCKET_NAME
@@ -23,5 +25,6 @@ elif [ "$platform" == "AWS" ]; then
     		--oidc-storage-provider-s3-bucket-name "$BUCKET_NAME" \
     		--oidc-storage-provider-s3-credentials "config/awscredentials" \
     		--oidc-storage-provider-s3-region "$REGION" \
-    		--hypershift-image "quay.io/hypershift/hypershift-operator:latest"
+    		--hypershift-image "quay.io/hypershift/hypershift-operator:latest" \
+    		--wait-until-available
 fi

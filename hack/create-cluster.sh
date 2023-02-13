@@ -10,8 +10,8 @@ fi
 
 echo "extract secret/pull-secret"
 oc extract secret/pull-secret -n openshift-config --to=config --confirm
-echo "get playload image"
 PLAYLOADIMAGE=$(oc get clusterversion version -ojsonpath='{.status.desired.image}')
+echo "playload image: $PLAYLOADIMAGE"
 
 platform=$(oc get infrastructure cluster -o=jsonpath='{.status.platformStatus.type}')
 bash "hack/export-credentials.sh" "$platform"
