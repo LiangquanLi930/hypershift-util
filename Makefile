@@ -42,9 +42,17 @@ get-architecture: ## get cluster architecture
 get-baseDomain: ## get cluster baseDomain
 	@oc get dns -ojsonpath='{.items[].spec.baseDomain}'
 
+.PHONY: get-hostedcluster-cp
+get-hostedcluster-cp: ## get HostedCluster Control Plane
+	@bash hack/control-plane.sh
+
 .PHONY: export-credentials
 export-credentials: ## export credentials (support: AWS,Azure)
 	@bash hack/export-credentials.sh
+
+.PHONY: export-pull-secret
+export-pull-secret: ## export pull-secret
+	@oc extract secret/pull-secret -n openshift-config --to=config --confirm
 
 # need aws cli https://docs.aws.amazon.com/zh_cn/cli/v1/userguide/install-macos.html
 .PHONY: create-aws-bucket
@@ -60,7 +68,7 @@ create-cluster-manual: ## create hosted cluster (AWS) manual
 	@bash hack/create-cluster-manual.sh
 
 .PHONY: destroy-cluster
-destroy-cluster: ## destroy hosted cluster (AWS,Azure)
+destroy-cluster: ## destroy hosted cluster (AWS,Azure,kubevirt)
 	@bash hack/destroy-cluster.sh
 
 .PHONY: create-kubeconfig
