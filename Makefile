@@ -11,11 +11,11 @@ help: ## Display this help.
 
 .PHONY: init
 init: ## init, Init configuration, need to export an env variable for hypershift client binary,
-	@git clone git@github.com:openshift/hypershift.git && mkdir -p config && echo "hypershift client binary path: `pwd`/bin/hypershift"
+	@git clone git@github.com:openshift/hypershift.git && mkdir -p config && echo "hypershift client binary path: `pwd`/bin/hypershift, `pwd`/bin/hcp"
 
 .PHONY: update-cli
 update-cli: ## update hypershift cli
-	@cd hypershift && git checkout . && git pull && make hypershift
+	@cd hypershift && git checkout . && git pull && make hypershift && make product-cli
 
 #hypershift install
 .PHONY: install-operator
@@ -46,6 +46,14 @@ get-baseDomain: ## get cluster baseDomain
 get-hostedcluster-cp: ## get HostedCluster Control Plane
 	@bash hack/control-plane.sh
 
+.PHONY: get-hostedcluster-cp-ns
+get-hostedcluster-cp-ns: ## get HostedCluster Control Plane NameSpace
+	@bash hack/control-plane-ns.sh
+
+.PHONY: get-agent-state
+get-agent-state: ## get agent state
+	@bash hack/agent-state.sh
+
 .PHONY: export-credentials
 export-credentials: ## export credentials (support: AWS,Azure)
 	@bash hack/export-credentials.sh
@@ -72,7 +80,7 @@ destroy-cluster: ## destroy hosted cluster (AWS,Azure,kubevirt)
 	@bash hack/destroy-cluster.sh
 
 .PHONY: create-kubeconfig
-create-kubeconfig: ## create hosted cluster kubeconfig > hostedcluster.kubeconfig 有待修改
+create-kubeconfig: ## create hosted cluster kubeconfig > hostedcluster.kubeconfig
 	@hypershift create kubeconfig > hostedcluster.kubeconfig
 
 .PHONY: guest-console-info
