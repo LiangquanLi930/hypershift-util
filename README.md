@@ -14,3 +14,55 @@ Hypershift executable: ./hypershift/bin/hypershift
 HCP executable: ./hypershift/bin/hcp
 
 Make sure to perform these tasks to properly initialize the environment for your project.
+### How to Use
++ create aws bucket
+    ```shell
+    ➜  make create-aws-bucket
+    bucket name? liangli0828-2
+    set aws credentials
+    AWS export credentials
+    {
+        "Location": "http://liangli0828-2.s3.amazonaws.com/"
+    }
+    ```
++ Install HyperShift Operator
+    ```shell
+    ➜  my git:(main) ✗ make install-operator              
+    platform: AWS
+    bucket name? liangli0828-2
+    created PriorityClass /hypershift-control-plane
+    created PriorityClass /hypershift-etcd
+    created PriorityClass /hypershift-api-critical
+    created PriorityClass /hypershift-operator
+    applied Namespace /hypershift
+    ...
+    Waiting for operator rollout...
+    Waiting for deployment "operator" rollout to finish: 0 of 2 updated replicas are available...
+    Waiting for deployment "operator" rollout to finish: 0 of 2 updated replicas are available...
+    ...
+    Deployment "operator" successfully rolled out
+    Endpoints available
+    ```
++ Create AWS HostedCluster
+    ```shell
+    make create-cluster  
+    > aws
+      mce-aws
+      kubevirt
+      mce-kubevirt
+      azure
+    cluster name?liangli0820-2
+    ...
+    ```
++ Delete AWS HostedCluster
+    ```shell
+    ➜  make destroy-cluster
+    namespace? (default:clusters)
+    begin to destroy cluster liangli0820-2
+    ```
+### List of Supported Platforms
+- [x] AWS
+- [x] MCE-AWS
+- [x] Azure
+- [ ] KubeVirt
+- [ ] MCE-KubeVirt

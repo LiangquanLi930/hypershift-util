@@ -8,7 +8,7 @@ echo "set aws credentials"
 bash "hack/export-credentials.sh" "AWS"
 cp -f "config/awscredentials" "$HOME/.aws/credentials"
 
-aws s3api head-bucket --bucket "$BUCKET_NAME"
+aws s3api head-bucket --bucket "$BUCKET_NAME" > /dev/null 2>&1
 if [ $? -eq 0 ] ; then
     echo "this bucket already exists"
 else

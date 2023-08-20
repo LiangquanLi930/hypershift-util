@@ -13,7 +13,13 @@ do
     echo "begin to destroy cluster ${cluster_item}"
     platform=$(oc get infrastructure cluster -o=jsonpath='{.status.platformStatus.type}')
     bash "hack/export-credentials.sh"
-    if [ "$platform" == 'Azure' ]; then
+    kubevirt=$(oc get customresourcedefinitions | grep hyperconvergeds | wc -l)
+    if [ "$kubevirt" -gt 0 ]; then
+        echo "kubevirt"
+        hypershift destroy cluster kubevirt \
+            --namespace "$NAMESPACE" \
+            --name "$cluster_item"
+    elif [ "$platform" == 'Azure' ]; then
         location=$(oc get node -ojsonpath='{.items[].metadata.labels.topology\.kubernetes\.io/region}')
         hypershift destroy cluster azure \
             --azure-creds config/azurecredentials \

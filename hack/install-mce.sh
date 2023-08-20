@@ -1,12 +1,10 @@
 #!/bin/bash
 
-set -ex
-
-echo -n "mce version (default:2.2)"
+echo -n "mce version (default:2.2):"
 read -r MCE_VERSION
-echo -n "QUAY_USERNAME"
+echo -n "QUAY_USERNAME:"
 read -r QUAY_USERNAME
-echo -n "QUAY_PASSWORD"
+echo -n "QUAY_PASSWORD:"
 read -r QUAY_PASSWORD
 
 _REPO="quay.io/acm-d/mce-custom-registry"
@@ -32,7 +30,7 @@ EOF
 
 oc get secret pull-secret -n openshift-config -o json | jq -r '.data.".dockerconfigjson"' | base64 -d > /tmp/global-pull-secret.json
 QUAY_AUTH=$(echo -n "${QUAY_USERNAME}:${QUAY_PASSWORD}" | base64)
-jq --arg QUAY_AUTH "$QUAY_AUTH" '.auths += {"quay.io:443/acm-d": {"auth":$QUAY_AUTH,"email":""}}' /tmp/global-pull-secret.json > /tmp/global-pull-secret.json.tmp
+jq --arg QUAY_AUTH "$QUAY_AUTH" '.auths += {"quay.io:443": {"auth":$QUAY_AUTH,"email":""}}' /tmp/global-pull-secret.json > /tmp/global-pull-secret.json.tmp
 mv /tmp/global-pull-secret.json.tmp /tmp/global-pull-secret.json
 oc set data secret/pull-secret -n openshift-config --from-file=.dockerconfigjson=/tmp/global-pull-secret.json
 rm /tmp/global-pull-secret.json

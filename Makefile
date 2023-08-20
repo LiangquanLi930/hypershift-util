@@ -11,7 +11,7 @@ help: ## Display this help.
 
 .PHONY: init
 init: ## init, Init configuration, need to export an env variable for hypershift client binary,
-	@git clone git@github.com:openshift/hypershift.git && mkdir -p config && echo "hypershift client binary path: `pwd`/bin/hypershift, `pwd`/bin/hcp"
+	@git clone git@github.com:openshift/hypershift.git && mkdir -p config && echo "hypershift client binary path: `pwd`./hypershift/bin/hypershift, `pwd`./hypershift/bin/hcp"
 
 .PHONY: update-cli
 update-cli: ## update hypershift cli
@@ -81,7 +81,7 @@ destroy-cluster: ## destroy hosted cluster (AWS,Azure,kubevirt)
 
 .PHONY: create-kubeconfig
 create-kubeconfig: ## create hosted cluster kubeconfig > hostedcluster.kubeconfig
-	@hypershift create kubeconfig > hostedcluster.kubeconfig
+	@hypershift create kubeconfig --namespace "$(oc get hostedcluster -A -ojsonpath='{.items[0].metadata.namespace}')" > hostedcluster.kubeconfig
 
 .PHONY: guest-console-info
 guest-console-info: ## get hosted cluster web console info
