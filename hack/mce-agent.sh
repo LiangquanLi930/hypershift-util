@@ -13,6 +13,8 @@ BASEDOMAIN=$(oc get dns/cluster -ojsonpath="{.spec.baseDomain}")
 PLAYLOADIMAGE=$(oc get clusterversion version -ojsonpath='{.status.desired.image}')
 echo "extract secret/pull-secret"
 oc extract secret/pull-secret -n openshift-config --to=/tmp --confirm
+echo "extract mgmt_iscp.yaml"
+oc get imagecontentsourcepolicy -oyaml > /tmp/mgmt_iscp.yaml && yq-go r /tmp/mgmt_iscp.yaml 'items[*].spec.repositoryDigestMirrors' -  | sed  '/---*/d' > /tmp/mgmt_iscp.yaml
 
 /tmp/hcp create cluster agent \
   --name=${CLUSTER_NAME} \
@@ -20,4 +22,5 @@ oc extract secret/pull-secret -n openshift-config --to=/tmp --confirm
   --namespace local-cluster \
   --agent-namespace="local-cluster-${CLUSTER_NAME}" \
   --base-domain=${BASEDOMAIN} \
-  --release-image "$PLAYLOADIMAGE"
+  --release-image "$PLAYLOADIMAGE" \
+  --image-content-sources /tmp/mgmt_iscp.yaml
