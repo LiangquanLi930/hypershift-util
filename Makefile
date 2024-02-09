@@ -26,6 +26,18 @@ install-operator: ## install HyperShift operator
 uninstall-operator: ## uninstall HyperShift operator. check: oc get all -n hypershift
 	@hypershift install render --format=yaml | oc delete -f -
 
+.PHONY: get-node-internal-ip
+get-node-internal-ip: ## get node InternalIP
+	@oc get node -o jsonpath='{range .items[*]}Node: {@.metadata.name}  InternalIP: {@.status.addresses[?(@.type=="InternalIP")].address}{"\n"}{end}'
+
+.PHONY: get-hypershift-supported-versions
+get-hypershift-supported-versions: ## get HyperShift supported versions
+	@oc get cm -n hypershift supported-versions -ojsonpath='{.data}' | jq
+
+.PHONY: get-mce-version
+get-mce-version: ## get multiclusterengines version
+	@oc get multiclusterengines multiclusterengine-sample  -ojsonpath="{.status.currentVersion}"
+
 .PHONY: get-region
 get-region: ## get cluster region
 	@oc get node -ojsonpath='{.items[].metadata.labels.topology\.kubernetes\.io/region}'
