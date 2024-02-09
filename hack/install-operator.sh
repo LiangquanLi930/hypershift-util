@@ -26,5 +26,6 @@ elif [ "$platform" == "AWS" ]; then
     		--oidc-storage-provider-s3-credentials "config/awscredentials" \
     		--oidc-storage-provider-s3-region "$REGION" \
     		--hypershift-image "quay.io/hypershift/hypershift-operator:latest" \
+    		--enable-defaulting-webhook=true \
     		--wait-until-available
 fi
