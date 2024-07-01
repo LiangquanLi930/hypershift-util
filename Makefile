@@ -7,7 +7,7 @@ __check_defined = \
 
 .PHONY: help
 help: ## Display this help.
-	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-22s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
+	@awk 'BEGIN {FS = ":.*##"; printf "\nUsage:\n  make \033[36m<target>\033[0m\n"} /^[a-zA-Z_0-9-]+:.*?##/ { printf "  \033[36m%-35s\033[0m %s\n", $$1, $$2 } /^##@/ { printf "\n\033[1m%s\033[0m\n", substr($$0, 5) } ' $(MAKEFILE_LIST)
 
 .PHONY: init
 init: ## init, Init configuration, need to export an env variable for hypershift client binary,
@@ -33,6 +33,10 @@ get-node-internal-ip: ## get node InternalIP
 .PHONY: get-hypershift-supported-versions
 get-hypershift-supported-versions: ## get HyperShift supported versions
 	@oc get cm -n hypershift supported-versions -ojsonpath='{.data}' | jq
+
+.PHONY: get-hypershift-version
+get-hypershift-version: ## get HyperShift version
+	@oc logs -n hypershift -lapp=operator --tail=-1 -c operator | head -1 | jq
 
 .PHONY: get-mce-version
 get-mce-version: ## get multiclusterengines version
@@ -65,6 +69,10 @@ get-hostedcluster-cp-ns: ## get HostedCluster Control Plane NameSpace
 .PHONY: get-agent-state
 get-agent-state: ## get agent state
 	@bash hack/agent-state.sh
+
+.PHONY: check-agent-logs
+check-agent-logs: ## check agent logs
+	@bash hack/agent-check.sh
 
 .PHONY: export-credentials
 export-credentials: ## export credentials (support: AWS,Azure)

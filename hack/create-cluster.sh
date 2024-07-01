@@ -99,9 +99,49 @@ EOF
             ;;
         "kubevirt")
             echo "kubevirt"
+            oc get imagecontentsourcepolicy -oyaml | yq eval '(.items[0].spec.repositoryDigestMirrors)' - | gsed  '/---*/d' > config/mgmt_iscp.yaml
+
+            hypershift create cluster kubevirt \
+                --pull-secret config/.dockerconfigjson \
+                --name "$CLUSTER_NAME" \
+                --namespace clusters \
+                --node-pool-replicas 1 \
+                --memory 16Gi \
+                --cores 4 \
+                --release-image "$PLAYLOADIMAGE" \
+                --generate-ssh
             ;;
         "mce-kubevirt")
             echo "mce-kubevirt"
+            ;;
+        "agent")
+            echo "agent"
+            ;;
+        "mce-agent")
+            echo "============================="
+            echo "|| create cluster mce-agent ||"
+            echo "============================="
+            arch=$(arch)
+            if [ "$arch" == "x86_64" ]; then
+                downURL=$(oc get ConsoleCLIDownload hypershift-cli-download -o json | jq -r '.spec.links[] | select(.text | test("Mac for x86_64")).href') && curl -k --output /tmp/hypershift.tar.gz ${downURL}
+                cd /tmp && tar -xvf /tmp/hypershift.tar.gz
+                chmod +x /tmp/hypershift
+                cd -
+            fi
+            if [ "$arch" == "arm64" ]; then
+                downURL=$(oc get ConsoleCLIDownload hypershift-cli-download -o json | jq -r '.spec.links[] | select(.text | test("Mac for ARM 64")).href') && curl -k --output /tmp/hypershift.tar.gz ${downURL}
+                cd /tmp && tar -xvf /tmp/hypershift.tar.gz
+                chmod +x /tmp/hypershift
+                cd -
+            fi
+            oc create ns "clusters-${CLUSTER_NAME}"
+            BASEDOMAIN=$(oc get dns/cluster -ojsonpath="{.spec.baseDomain}")
+            /tmp/hypershift create cluster agent \
+              --name=${CLUSTER_NAME} \
+              --pull-secret config/.dockerconfigjson \
+              --agent-namespace="clusters-${CLUSTER_NAME}" \
+              --base-domain=${BASEDOMAIN} \
+              --api-server-address=api.${CLUSTER_NAME}.${BASEDOMAIN}
             ;;
         "azure")
             echo "azure"
@@ -132,7 +172,7 @@ EOF
 }
 
 
-menu=("aws" "mce-aws" "kubevirt" "mce-kubevirt" "azure")
+menu=("aws" "mce-aws" "kubevirt" "mce-kubevirt" "agent" "mce-agent" "azure")
 selected=0
 
 while true; do
