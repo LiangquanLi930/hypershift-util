@@ -114,3 +114,7 @@ guest-create-user: ## create user for guest cluster
 .PHONY: install-mce
 install-mce: ## install mce operator
 	@bash hack/install-mce.sh
+
+.PHONY: prow-client
+prow-client: ## Prow Client
+	@bash hack/prow.sh
