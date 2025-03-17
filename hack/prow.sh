@@ -12,14 +12,17 @@ prow() {
             echo "trigger a prow job"
             echo -n "JOB NAME?"
             read -r JOB_NAME
-            curl -X POST -d '{"job_execution_type": "1"}' -H "Authorization: Bearer ${TOKEN}" "${GANGWAY_API}/v1/executions/${JOB_NAME}"
+            curl -s -X POST -d '{"job_execution_type": "1"}' \
+              -H "Authorization: Bearer ${TOKEN}" "${GANGWAY_API}/v1/executions/${JOB_NAME}" \
+              -w "\nHTTP Status: %{http_code}\n"
 #            curl -X POST -d '{"job_execution_type": "1","pod_spec_options":{"envs":{"RELEASE_IMAGE_MCE":"quay.io/openshift-release-dev/ocp-release:4.13.3-x86_64","RELEASE_IMAGE_LATEST":"quay.io/openshift-release-dev/ocp-release:4.13.2-x86_64"}}}' -H "Authorization: Bearer ${TOKEN}" "${GANGWAY_API}/v1/executions/${JOB_NAME}"
             ;;
         "get-job")
             echo "get a prow job by id"
             echo -n "PROW JOB ID?"
             read -r PROW_JOB_ID
-            curl -s -X GET -H "Authorization: Bearer ${TOKEN}" "${GANGWAY_API}/v1/executions/${PROW_JOB_ID}"
+            curl -s -X GET -H "Authorization: Bearer ${TOKEN}" \
+            "${GANGWAY_API}/v1/executions/${PROW_JOB_ID}" -w "%{http_code}"
             ;;
         *)
             echo "other"
